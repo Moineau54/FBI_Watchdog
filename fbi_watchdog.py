@@ -225,8 +225,8 @@ def discord_notify(domain, recordType, dnsRecords, prevEntry, screenshotPath=Non
                     f"**Domain:** `{domain}`\n"
                     f"**Record Type:** `{recordType}`\n"
                     f"**Time Detected:** {detected_time}\n\n"
-                    f"**Previous Records:**\n```\n{'\n'.join(prevEntry) or 'None'}\n```\n"
-                    f"**New Records:**\n```\n{'\n'.join(dnsRecords) or 'None'}\n```"
+                    f"**Previous Records:**\n```\n{r'\n'.join(prevEntry) or 'None'}\n```\n"
+                    f"**New Records:**\n```\n{r'\n'.join(dnsRecords) or 'None'}\n```"
                 ),
                 "color": 16711680
             }
