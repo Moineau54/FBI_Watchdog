@@ -3,4 +3,6 @@
 .envrc
 *.json
 clearnet.txt
+*.txt
 onion.txt
+screenshots
