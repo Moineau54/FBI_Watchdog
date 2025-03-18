@@ -1,3 +1,4 @@
+#!.venv/bin/python
 import sys
 import os
 import subprocess
@@ -573,6 +574,7 @@ def watch_dog():
             if is_tor_running():
                 console.print("")
                 console.print(Padding(f"→ Configuring Firefox to route traffic through Tor...", (0, 0, 0, 4)))
+                subprocess.run(["sudo", "anonsurf", "start"])
                 console.print(Padding("[bold cyan]→ Checking .onion sites for seizures...[/bold cyan]", (0, 0, 0, 4)))
                 console.print("")
 
@@ -580,6 +582,7 @@ def watch_dog():
                     check_onion_status(onion_site)
 
                 console.print("")
+                subprocess.run(["sudo", "anonsurf", "stop"])
                 console.print(Padding("[bold green]→ Onion scan complete. Snoozing for 60 seconds...[/bold green]\n", (0, 0, 0, 4)))
 
             # ✅ Save results after both DNS and .onion scans
