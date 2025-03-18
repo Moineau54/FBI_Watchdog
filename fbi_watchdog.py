@@ -116,13 +116,20 @@ console.print(Padding(f"[bold blue]{ascii_banner}[/bold blue]", (0, 0, 0, 4)))
 
 # Domain list to monitor for seizure banners and DNS changes
 
-domains = [
-    "example.com," "example1.com," "example2.com"
-]
+# domains = [
+#     "example.com," "example1.com," "example2.com"
+# ]
+domains = []
+with open("clearnet.txt", "r") as f:
+    domains = f.read().split("\n")
 
-onion_sites = [
-     "dreadytofatroptsdj6io7l3xptbet6onoyno2yv7jicoxknyazubrad.onion", "breached26tezcofqla4adzyn22notfqwcac7gpbrleg4usehljwkgqd.onion",
-]
+# onion_sites = [
+#      "dreadytognbh7m5nlmqsogzzlxjy75iuxkulewbhxcorupbqahact2yd.onion", "breached26tezcofqla4adzyn22notfqwcac7gpbrleg4usehljwkgqd.onion",
+# ]
+onion_sites = []
+with open("onion.txt", "r") as f:
+    onion_sites = f.read().split("\n")
+
 
 # DNS records that will be checked for changes
 dnsRecords = ["A", "AAAA", "CNAME", "MX", "NS", "SOA", "TXT"]
