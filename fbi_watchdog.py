@@ -115,11 +115,7 @@ ascii_banner = r"""
 
 console.print(Padding(f"[bold blue]{ascii_banner}[/bold blue]", (0, 0, 0, 4)))
 
-# Domain list to monitor for seizure banners and DNS changes
 
-# domains = [
-#     "example.com," "example1.com," "example2.com"
-# ]
 domains = []
 with open("clearnet.txt", "r") as f:
     lines = f.read().split("\n")
@@ -128,9 +124,7 @@ for line in lines:
     if line != "":
         domains.append(line)
 
-# onion_sites = [
-#      "dreadytognbh7m5nlmqsogzzlxjy75iuxkulewbhxcorupbqahact2yd.onion", "breached26tezcofqla4adzyn22notfqwcac7gpbrleg4usehljwkgqd.onion",
-# ]
+
 onion_sites = []
 with open("onion.txt", "r") as f:
     lines = f.read().split("\n")
@@ -582,7 +576,7 @@ def watch_dog():
             if is_tor_running():
                 console.print("")
                 console.print(Padding(f"→ Configuring Firefox to route traffic through Tor...", (0, 0, 0, 4)))
-                #subprocess.run(["sudo", "anonsurf", "start"])
+                
                 console.print(Padding("[bold cyan]→ Checking .onion sites for seizures...[/bold cyan]", (0, 0, 0, 4)))
                 console.print("")
 
@@ -590,7 +584,7 @@ def watch_dog():
                     check_onion_status(onion_site)
 
                 console.print("")
-                #subprocess.run(["sudo", "anonsurf", "stop"])
+                
                 console.print(Padding("[bold green]→ Onion scan complete. Snoozing for 60 seconds...[/bold green]\n", (0, 0, 0, 4)))
 
             # ✅ Save results after both DNS and .onion scans
