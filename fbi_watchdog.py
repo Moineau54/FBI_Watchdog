@@ -122,27 +122,35 @@ console.print(Padding(f"[bold blue]{ascii_banner}[/bold blue]", (0, 0, 0, 4)))
 # ]
 domains = []
 with open("clearnet.txt", "r") as f:
-    domains = f.read().split("\n")
+    lines = f.read().split("\n")
+
+for line in lines:
+    if line != "":
+        domains.append(line)
 
 # onion_sites = [
 #      "dreadytognbh7m5nlmqsogzzlxjy75iuxkulewbhxcorupbqahact2yd.onion", "breached26tezcofqla4adzyn22notfqwcac7gpbrleg4usehljwkgqd.onion",
 # ]
 onion_sites = []
 with open("onion.txt", "r") as f:
-    onion_sites = f.read().split("\n")
+    lines = f.read().split("\n")
+
+for line in lines:
+    if line != "":
+        onion_sites.append(line)
 
 
 # DNS records that will be checked for changes
 dnsRecords = ["A", "AAAA", "CNAME", "MX", "NS", "SOA", "TXT"]
 
-webhook_url = os.getenv("WEBHOOK")
+#webhook_url = os.getenv("WEBHOOK")
 alert_bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
 alert_chat_id = os.getenv("TELEGRAM_CHAT_ID")
 
 # If any env variables are missing, the script will not start.
-if not webhook_url or not alert_bot_token or not alert_chat_id:
-    console.print(Padding(f"[red]→ Missing environment variable! You did not set a WEBHOOK, TELEGRAM_BOT_TOKEN, and TELEGRAM_CHAT_ID.[/red]", (0, 0, 0, 4)))
-    exit(1)
+#if not webhook_url or not alert_bot_token or not alert_chat_id:
+#    console.print(Padding(f"[red]→ Missing environment variable! You did not set a WEBHOOK, TELEGRAM_BOT_TOKEN, and TELEGRAM_CHAT_ID.[/red]", (0, 0, 0, 4)))
+#    exit(1)
 
 # File to store previous DNS results
 state_file = "fbi_watchdog_results.json"
@@ -233,13 +241,13 @@ def discord_notify(domain, recordType, dnsRecords, prevEntry, screenshotPath=Non
         ]
     }
 
-    send_request(webhook_url, data=embed_data, use_tor=False)
+    #send_request(webhook_url, data=embed_data, use_tor=False)
 
     # ✅ Send Screenshot if Available
-    if screenshotPath and os.path.exists(screenshotPath):
-        console.print(Padding(f"→ Sending seizure image to Discord for {domain}...", (0, 0, 0, 4)))
-        with open(screenshotPath, 'rb') as file:
-            requests.post(webhook_url, files={"file": file})
+    #if screenshotPath and os.path.exists(screenshotPath):
+        #console.print(Padding(f"→ Sending seizure image to Discord for {domain}...", (0, 0, 0, 4)))
+        #with open(screenshotPath, 'rb') as file:
+            #requests.post(webhook_url, files={"file": file})
 
 
 def capture_seizure_image(domain, use_tor=False):
@@ -574,7 +582,7 @@ def watch_dog():
             if is_tor_running():
                 console.print("")
                 console.print(Padding(f"→ Configuring Firefox to route traffic through Tor...", (0, 0, 0, 4)))
-                subprocess.run(["sudo", "anonsurf", "start"])
+                #subprocess.run(["sudo", "anonsurf", "start"])
                 console.print(Padding("[bold cyan]→ Checking .onion sites for seizures...[/bold cyan]", (0, 0, 0, 4)))
                 console.print("")
 
@@ -582,7 +590,7 @@ def watch_dog():
                     check_onion_status(onion_site)
 
                 console.print("")
-                subprocess.run(["sudo", "anonsurf", "stop"])
+                #subprocess.run(["sudo", "anonsurf", "stop"])
                 console.print(Padding("[bold green]→ Onion scan complete. Snoozing for 60 seconds...[/bold green]\n", (0, 0, 0, 4)))
 
             # ✅ Save results after both DNS and .onion scans
