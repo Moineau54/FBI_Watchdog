@@ -121,7 +121,7 @@ with open("clearnet.txt", "r") as f:
     lines = f.read().split("\n")
 
 for line in lines:
-    if line != "":
+    if line != "" and not line.startswith("#"):
         domains.append(line)
 
 
@@ -130,7 +130,7 @@ with open("onion.txt", "r") as f:
     lines = f.read().split("\n")
 
 for line in lines:
-    if line != "":
+    if line != "" and not line.startswith("#"):
         onion_sites.append(line)
 
 
@@ -218,6 +218,9 @@ def discord_notify(domain, recordType, dnsRecords, prevEntry, screenshotPath=Non
     detected_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     prevEntry = prevEntry if isinstance(prevEntry, list) else []
 
+    prev_records = '\n'.join(prevEntry) or 'None'
+    new_records = '\n'.join(dnsRecords) or 'None'
+
     embed_data = {
         "embeds": [
             {
@@ -227,8 +230,8 @@ def discord_notify(domain, recordType, dnsRecords, prevEntry, screenshotPath=Non
                     f"**Domain:** `{domain}`\n"
                     f"**Record Type:** `{recordType}`\n"
                     f"**Time Detected:** {detected_time}\n\n"
-                    f"**Previous Records:**\n```\n{r'\n'.join(prevEntry) or 'None'}\n```\n"
-                    f"**New Records:**\n```\n{r'\n'.join(dnsRecords) or 'None'}\n```"
+                    f"**Previous Records:**\n```\n{prev_records}\n```\n"
+                    f"**New Records:**\n```\n{new_records}\n```"
                 ),
                 "color": 16711680
             }
