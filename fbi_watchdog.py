@@ -61,7 +61,7 @@ def watchdog_update():
 
         # Apply the update
         update_result = subprocess.run(
-            ["git", "-C", repo_dir, "pull", "origin", "main"],
+            ["git", repo_dir, "pull", "origin", "main"],
             capture_output=True, text=True
         )
 
@@ -442,35 +442,38 @@ def check_onion_status(onion_url):
 
     try:
         response = requests.get(f"http://{onion_url}", proxies=proxies, timeout=30)  # Increased timeout
-        html_content = response.text.lower()
+        soup = BeautifulSoup(response.text, "lxml")
+        title = soup.find("title")
+        if title:
+            html_content = title.text.lower()
 
-        seizure_keywords = [
-            "this hidden site has been seized", "fbi", "seized by", "department of justice",
-            "europol", "nca", "interpol", "law enforcement", "this domain has been seized"
-        ]
+            seizure_keywords = [
+                "this hidden site has been seized", "fbi", "seized by", "department of justice",
+                "europol", "nca", "interpol", "law enforcement", "this domain has been seized"
+            ]
 
-        is_seized = any(keyword in html_content for keyword in seizure_keywords)
-        new_status = "seized" if is_seized else "active"
+            is_seized = any(keyword in html_content for keyword in seizure_keywords)
+            new_status = "seized" if is_seized else "active"
 
-        if last_status == new_status:
-            console.print(Padding(f"[cyan]→ No change detected for {onion_url}, skipping.[/cyan]", (0, 0, 0, 4)))
-            return False
+            if last_status == new_status:
+                console.print(Padding(f"[cyan]→ No change detected for {onion_url}, skipping.[/cyan]", (0, 0, 0, 4)))
+                return False
 
-        if is_seized:
-            console.print(Padding(f"[bold red]→ Seizure detected: {onion_url}[/bold red]", (0, 0, 0, 4)))
-            seizure_capture = capture_seizure_image(onion_url, use_tor=True)
+            if is_seized:
+                console.print(Padding(f"[bold red]→ Seizure detected: {onion_url}[/bold red]", (0, 0, 0, 4)))
+                seizure_capture = capture_seizure_image(onion_url, use_tor=True)
 
-            onion_results[onion_url] = {"status": "seized", "last_checked": datetime.now(timezone.utc).isoformat()}
-            save_onion_results()
+                onion_results[onion_url] = {"status": "seized", "last_checked": datetime.now(timezone.utc).isoformat()}
+                save_onion_results()
 
-            telegram_notify(onion_url, "Onion Seized", ["Seized"], ["Online"], seizure_capture)
-            discord_notify(onion_url, "Onion Seized", ["Seized"], ["Online"], seizure_capture)
+                telegram_notify(onion_url, "Onion Seized", ["Seized"], ["Online"], seizure_capture)
+                discord_notify(onion_url, "Onion Seized", ["Seized"], ["Online"], seizure_capture)
 
-        else:
-            console.print(Padding(f"[green]→ {onion_url} is active[/green]", (0, 0, 0, 4)))
-            onion_results[onion_url] = {"status": "active", "last_checked": datetime.now(timezone.utc).isoformat()}
-            save_onion_results()
-
+            else:
+                console.print(Padding(f"[green]→ {onion_url} is active[/green]", (0, 0, 0, 4)))
+                onion_results[onion_url] = {"status": "active", "last_checked": datetime.now(timezone.utc).isoformat()}
+                save_onion_results()
+        is_seized = "None"
         return is_seized
 
     except requests.exceptions.ConnectionError:
