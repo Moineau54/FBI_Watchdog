@@ -449,7 +449,7 @@ def check_onion_status(onion_url):
 
             seizure_keywords = [
                 "this hidden site has been seized", "fbi", "seized by", "department of justice",
-                "europol", "nca", "interpol", "law enforcement", "this domain has been seized"
+                "europol", "nca", "interpol", "law enforcement", "this domain has been seized", "this site has been seized"
             ]
 
             is_seized = any(keyword in html_content for keyword in seizure_keywords)
