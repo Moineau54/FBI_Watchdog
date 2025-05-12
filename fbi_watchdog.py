@@ -449,10 +449,16 @@ def check_onion_status(onion_url):
 
             seizure_keywords = [
                 "this hidden site has been seized", "fbi", "seized by", "department of justice",
-                "europol", "nca", "interpol", "law enforcement", "this domain has been seized", "this site has been seized"
+                "europol", "nca", "interpol", "law enforcement", "this domain has been seized", "this site has been seized", "has been seized"
             ]
 
-            is_seized = any(keyword in html_content for keyword in seizure_keywords)
+            # is_seized = any(keyword in html_content for keyword in seizure_keywords)
+            is_seized = False
+            for keyword in seizure_keywords:
+                if html_content.__contains__(keyword):
+                    console.print(Padding(f"[bold red]→ Seizure detected: {onion_url} ({keyword})[/bold red]", (0, 0, 0, 4)))
+                    is_seized = True
+                    break
             new_status = "seized" if is_seized else "active"
 
             if last_status == new_status:
