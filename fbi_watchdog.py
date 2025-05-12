@@ -97,18 +97,18 @@ load_dotenv()
 clear_screen()
 
 ascii_banner = r"""
- ______ ____ _____  __          __   _       _         _             
-|  ____|  _ \_   _| \ \        / /  | |     | |       | |            
-| |__  | |_) || |    \ \  /\  / /_ _| |_ ___| |__   __| | ___   __ _  
+ ______ ____ _____  __          __   _       _         _
+|  ____|  _ \_   _| \ \        / /  | |     | |       | |
+| |__  | |_) || |    \ \  /\  / /_ _| |_ ___| |__   __| | ___   __ _
 |  __| |  _ < | |     \ \/  \/ / _` | __/ __| '_ \ / _` |/ _ \ / _` |
 | |    | |_) || |_     \  /\  / (_| | || (__| | | | (_| | (_) | (_| |
 |_|    |____/_____|     \/  \/ \__,_|\__\___|_| |_|\__,_|\___/ \__, |
                                                                 __/ |
-                .--~~,__          Catching seizure banners...  |___/  
+                .--~~,__          Catching seizure banners...  |___/
     :-....,-------`~~'._.'       before law enforcement...
     `-,,,  ,_      ;'~U'        even realizes they exist.
      _,-' ,'`-__; '--.
-    (_/'~~      ''''(;                                                    
+    (_/'~~      ''''(;
 
 [bold blue]FBI Watchdog v2.0.2 by [link=https://darkwebinformer.com]Dark Web Informer[/link][/bold blue]
 """
@@ -152,9 +152,9 @@ previous_results = {}
 
 def send_request(url, data=None, use_tor=False):
     """Send a request using Tor only for .onion sites, normal internet uses direct connection."""
-    
+
     # ✅ Default: No proxy (use normal internet)
-    proxies = None  
+    proxies = None
 
     # ✅ Use Tor proxy ONLY for .onion sites
     if use_tor:
@@ -200,7 +200,7 @@ def telegram_notify(domain, record_type, records, previous_records, seizure_capt
         f"*New Records:*\n```\n{new_records_formatted}\n```"
     )
 
-    send_request(f"https://api.telegram.org/bot{alert_bot_token}/sendMessage", 
+    send_request(f"https://api.telegram.org/bot{alert_bot_token}/sendMessage",
                  data={"chat_id": alert_chat_id, "text": message, "parse_mode": "Markdown"},
                  use_tor=False)
 
@@ -249,11 +249,11 @@ def discord_notify(domain, recordType, dnsRecords, prevEntry, screenshotPath=Non
 
 def capture_seizure_image(domain, use_tor=False):
     """Capture a screenshot of a suspected seizure page using Firefox.
-    
+
     - Uses **Tor (Firefox proxy settings)** for `.onion` sites.
     - Uses **Direct connection** for clearnet sites.
     """
-    
+
     screenshot_filename = f"screenshots/{domain}_image.png"
     os.makedirs("screenshots", exist_ok=True)
 
@@ -262,12 +262,12 @@ def capture_seizure_image(domain, use_tor=False):
     try:
         options = FirefoxOptions()
         options.add_argument("--headless")
-        options.add_argument("--window-size=2560,1440")  
+        options.add_argument("--window-size=2560,1440")
         options.add_argument("--ignore-certificate-errors")
         options.add_argument("--disable-web-security")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
-        
+
         # Automatically detect OS and set Firefox binary location
         if platform.system() == "Windows":
             options.binary_location = "C:\\Program Files\\Mozilla Firefox\\firefox.exe"
@@ -394,7 +394,7 @@ def is_tor_running():
 
     # ✅ If tor_status is already True, don't check again
     if tor_status:
-        return True  
+        return True
 
     tor_ports = [9050, 9150]  # Check both common Tor ports
 
@@ -415,7 +415,7 @@ def is_tor_running():
                 console.print(Padding(f"[bold green]→ Tor is running and routing traffic on port {tor_port}![/bold green]", (0, 0, 0, 4)))
                 console.print("")
                 return True
-                
+
         except requests.exceptions.RequestException:
             console.print(Padding(f"[yellow]→ Tor check failed on port {tor_port}. Trying next port...[/yellow]", (0, 0, 0, 4)))
             continue  # Try the next port
@@ -431,7 +431,7 @@ def check_onion_status(onion_url):
     """Check if a .onion site is seized by scanning for known seizure text in HTML."""
     global onion_results
 
-    if not is_tor_running():  
+    if not is_tor_running():
         console.print(Padding(f"[red]→ Skipping {onion_url}: Tor is not running![/red]", (0, 0, 0, 4)))
         return False
 
@@ -449,10 +449,15 @@ def check_onion_status(onion_url):
 
             seizure_keywords = [
                 "this hidden site has been seized", "fbi", "seized by", "department of justice",
-                "europol", "nca", "interpol", "law enforcement", "this domain has been seized", "this site has been seized"
+                "europol", "nca", "interpol", "law enforcement", "this domain has been seized", "this site has been seized", "has been seized"
             ]
 
-            is_seized = any(keyword in html_content for keyword in seizure_keywords)
+            # is_seized = any(keyword in html_content for keyword in seizure_keywords)
+            is_seized = False
+            for keyword in seizure_keywords:
+                if html_content.__contains__(keyword):
+                    is_seized = True
+                    break
             new_status = "seized" if is_seized else "active"
 
             if last_status == new_status:
@@ -582,7 +587,7 @@ def watch_dog():
             if is_tor_running():
                 console.print("")
                 console.print(Padding(f"→ Configuring Firefox to route traffic through Tor...", (0, 0, 0, 4)))
-                
+
                 console.print(Padding("[bold cyan]→ Checking .onion sites for seizures...[/bold cyan]", (0, 0, 0, 4)))
                 console.print("")
 
@@ -590,7 +595,7 @@ def watch_dog():
                     check_onion_status(onion_site)
 
                 console.print("")
-                
+
                 console.print(Padding("[bold green]→ Onion scan complete. Snoozing for 60 seconds...[/bold green]\n", (0, 0, 0, 4)))
 
             # ✅ Save results after both DNS and .onion scans
