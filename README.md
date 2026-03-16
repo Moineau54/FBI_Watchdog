@@ -87,7 +87,7 @@ The live feed is available exclusively to paying subscribers of [Dark Web Inform
 ├─────────────┴──────────────┴───────────────┴───────────┴──────────────┤
 │                           Escalation Engine                           │
 │              (Cross-monitor audit + screenshot capture)               │
-├───────────────────────────────┬───────────────────────────────────────┤
+├───────────────────────────────────┬───────────────────────────────────┤
 │         Discord Webhooks          │         Telegram Bot API          │
 ├─────────────────────┬─────────────┴─────────────┬─────────────────────┤
 │ State Files (JSON)  │     Event Feed (JSON)     │  Screenshots (PNG)  │
