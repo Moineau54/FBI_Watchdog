@@ -1,0 +1,38 @@
+# Environment and credentials
+.env
+
+# State files
+fbi_watchdog_results.json
+onion_watchdog_results.json
+http_watchdog_results.json
+whois_watchdog_results.json
+ip_watchdog_results.json
+event_feed.json
+
+# Monitored sites (user-specific)
+monitored_sites.json
+
+# Screenshots
+screenshots/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,8 +1,9 @@
 dnspython
 requests
 python-dotenv
-selenium
-webdriver-manager
+playwright
 rich
-PySocks
+python-whois
 beautifulsoup4
+PySocks
+urllib3

@@ -1,0 +1,9 @@
+{
+  "domains": [
+    "example.com",
+    "anotherdomain.org"
+  ],
+  "onion_sites": [
+    "exampleonion1234abcdef5678.onion"
+  ]
+}
