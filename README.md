@@ -33,7 +33,7 @@ When a seizure signal is detected across any monitor, the tool triggers a cross-
 
 ## Features
 
-- **DNS Monitoring** - Tracks A, AAAA, CNAME, MX, NS, and TXT records across all monitored domains. Detects never-before-seen record combinations and flags seizure-related DNS entries (e.g., `fbi.seized`, `seized.gov`, `usssdomainseizure`). SOA was taken out during test because it was loud. Add it back in the script if you need it.
+- **DNS Monitoring** - Tracks A, AAAA, CNAME, MX, NS, and TXT records across all monitored domains. Detects never-before-seen record combinations and flags seizure-related DNS entries (e.g., `fbi.seized`, `seized.gov`, `usssdomainseizure`). SOA was taken out during testing because it was loud. Add it back in the script if you need it.
 
 - **HTTP Fingerprint Monitoring** - Fingerprints server headers, status codes, body content hashes, redirect chains, and page size. Detects seizure keywords in page content, redirect-to-government patterns, and simultaneous server + body changes that indicate infrastructure takeover.
 
