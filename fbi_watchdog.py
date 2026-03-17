@@ -32,7 +32,7 @@ logging.getLogger("whois.whois").setLevel(logging.CRITICAL)
 
 console = Console()
 
-VERSION = "3.0.0"
+VERSION = "3.0.1"
 STATE_FILE = Path("fbi_watchdog_results.json")
 ONION_STATE_FILE = Path("onion_watchdog_results.json")
 HTTP_STATE_FILE = Path("http_watchdog_results.json")
@@ -1761,6 +1761,20 @@ class HTTPMonitor:
         "ice.gov", "fbi.gov",
     ]
     
+    FALSE_POSITIVE_REDIRECT_PATTERNS = [
+        "safebrowse", "safebrowsing", "websafe", "virussafe",
+        "blocked.html", "warn.html", "block-page", "blockpage",
+        "phishing-warning", "malware-warning", "deceptive-site",
+        "safe.google.com", "transparencyreport.google",
+        "virginmedia.com", "bt.com/help", "sky.com/help",
+        "talktalk.co.uk", "plusnet.com",
+        "opendns.com/phishing", "cisco.com/web-filter",
+        "fortiguard.com/webfilter",
+        "safesearch", "neterror", "connectivitycheck",
+        "captive-portal", "hotspot-detect",
+        "cujo.io", "charter-prod", "charter.net",
+    ]
+    
     def __init__(self, state_manager: StateManager, notifier: 'Notifier', 
                  event_feed: EventFeed = None, escalation: 'EscalationEngine' = None,
                  proxies: dict = None):
@@ -1854,9 +1868,16 @@ class HTTPMonitor:
         is_challenge_response = fingerprint.get("_is_challenge_page", False)
         
         if not is_transient_response and not is_challenge_response:
+            prev_hash_history = prev_state.get("body_hash_history", [])
+            new_hash = fingerprint.get("_body_hash", "")
+            if new_hash and new_hash not in prev_hash_history:
+                prev_hash_history.append(new_hash)
+            if len(prev_hash_history) > 10:
+                prev_hash_history = prev_hash_history[-10:]
             self.state.set(domain, {
                 "fingerprint": fingerprint,
-                "last_checked": datetime.now(timezone.utc).isoformat()
+                "last_checked": datetime.now(timezone.utc).isoformat(),
+                "body_hash_history": prev_hash_history,
             })
         elif not is_first_run:
             return False
@@ -1949,6 +1970,14 @@ class HTTPMonitor:
         new_url_stripped = re.sub(r'^https?://', '', new_url).rstrip('/')
         redirect_changed = old_url_stripped != new_url_stripped
         
+        hash_history = prev_state.get("body_hash_history", [])
+        is_oscillating = new_hash in hash_history and old_hash in hash_history
+        if is_oscillating:
+            body_changed = False
+            status_changed = False
+            redirect_changed = False
+            header_changes = {}
+        
         current_seizure_kw = fingerprint.get("_seizure_keywords", [])
         prev_seizure_kw = prev_fingerprint.get("_seizure_keywords", [])
         new_seizure_kw = [kw for kw in current_seizure_kw if kw not in prev_seizure_kw]
@@ -1973,22 +2002,27 @@ class HTTPMonitor:
         is_seizure_signal = False
         seizure_reasons = []
         
+        _new_url_lower = new_url.lower() if new_url else ""
+        _is_fp_redirect = any(
+            pat in _new_url_lower for pat in self.FALSE_POSITIVE_REDIRECT_PATTERNS
+        )
+        
         if has_new_seizure_keywords:
             is_seizure_signal = True
             seizure_reasons.append(f"Seizure keywords found in page: {', '.join(new_seizure_kw[:3])}")
         
-        if redirect_changed and new_url:
+        if redirect_changed and new_url and not _is_fp_redirect:
             for pattern in self.SEIZURE_REDIRECT_PATTERNS:
-                if pattern in new_url.lower():
+                if pattern in _new_url_lower:
                     is_seizure_signal = True
                     seizure_reasons.append(f"Redirect to {pattern}")
                     break
         
-        if body_changed and "server" in header_changes:
+        if body_changed and "server" in header_changes and not _is_fp_redirect:
             is_seizure_signal = True
             seizure_reasons.append("Server header + body content changed simultaneously")
         
-        if status_changed and new_status in (403, 451):
+        if status_changed and new_status in (451,) and not _is_fp_redirect:
             is_seizure_signal = True
             seizure_reasons.append(f"Status code changed to {new_status}")
         
