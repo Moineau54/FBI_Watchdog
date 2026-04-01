@@ -1459,12 +1459,13 @@ class OnionMonitor:
 class DNSMonitor:
     
     def __init__(self, state_manager: StateManager, notifier: Notifier, 
-                 event_feed: EventFeed = None, proxy_url: str = None):
+                 event_feed: EventFeed = None, proxy_url: str = None, config = None):
         self.state = state_manager
         self.notifier = notifier
         self.event_feed = event_feed
         self.silent = False
         self.proxy_url = proxy_url
+        self.config = config
     
     def check_domain(self, domain: str, record_type: str) -> bool:
         try:
@@ -3079,7 +3080,7 @@ class DWIWatchdog:
         self.event_feed = EventFeed(site_manager=site_manager)
         
         self.dns_monitor = DNSMonitor(self.dns_state, self.notifier, self.event_feed,
-                                      proxy_url=self.config.clearnet_proxy)
+                                      proxy_url=self.config.clearnet_proxy, config=self.config)
         self.onion_monitor = OnionMonitor(
             self.onion_state, self.tor_checker, 
             self.notifier, self.event_feed,
