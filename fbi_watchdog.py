@@ -53,7 +53,7 @@ USER_AGENTS = [
 ]
 
 REQUEST_TIMEOUT = 15
-ONION_TIMEOUT = 30
+ONION_TIMEOUT = 60
 SCAN_INTERVAL = 15
 DNS_DOMAIN_DELAY = 0.5
 DNS_RECORD_DELAY = 0.15
@@ -130,6 +130,7 @@ SEIZURE_KEYWORDS = [
     "law enforcement operation", "international law enforcement",
     "joint law enforcement operation",
     "this website is now under the control of", "seized and shut down",
+    "takedown"
 ]
 
 CHALLENGE_KEYWORDS = [
@@ -356,6 +357,14 @@ class DWIConfig:
         self.telegram_bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
         self.telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID")
         self.clearnet_proxy = os.getenv("CLEARNET_PROXY")
+        if os.getenv("ENABLE_JS") == "True":
+            self.enable_js = True
+            console.print(Padding(
+                "[yellow]→ has javascript enabled[/yellow]",
+                (0, 0, 0, 4)
+            ))
+        else:
+            self.enable_js = False
         
         self.validate()
     
@@ -451,6 +460,7 @@ class DWIConfig:
                 "[bold yellow]⚠ No notification channels configured - alerts will only appear in console and event feed[/bold yellow]",
                 (0, 0, 0, 4)
             ))
+        
 
 
 class StateManager:
@@ -818,7 +828,7 @@ class TorChecker:
 class DWIScreenshot:
     
     @classmethod
-    def capture(cls, url: str, use_tor: bool = False, proxy_url: str = None) -> Optional[Path]:
+    def capture(cls, url: str, use_tor: bool = False, proxy_url: str = None, enable_js = False) -> Optional[Path]:
         domain = url.replace("http://", "").replace("https://", "")
         safe_domain = re.sub(r'[^a-zA-Z0-9._\-]', '_', domain)[:200]
         screenshot_path = SCREENSHOT_DIR / f"{safe_domain}_seizure.png"
@@ -856,6 +866,7 @@ class DWIScreenshot:
                         headless=True,
                         args=launch_args,
                         proxy=proxy_settings
+
                     )
                 except Exception as proxy_err:
                     if proxy_settings and "authentication" in str(proxy_err).lower():
@@ -874,7 +885,7 @@ class DWIScreenshot:
                     viewport={"width": 1920, "height": 1080},
                     ignore_https_errors=use_tor,
                     accept_downloads=False,
-                    java_script_enabled=False
+                    java_script_enabled= enable_js
                 )
                 
                 page = context.new_page()
@@ -1010,7 +1021,7 @@ class EscalationEngine:
             "[bold cyan]→ Step 2/3: Capturing screenshot...[/bold cyan]",
             (0, 0, 0, 4)
         ))
-        screenshot_path = DWIScreenshot.capture(domain, use_tor=False, proxy_url=self.proxy_url)
+        screenshot_path = DWIScreenshot.capture(domain, use_tor=False, proxy_url=self.proxy_url, enable_js=self.config.enable_js)
         screenshot_str = str(screenshot_path) if screenshot_path else None
         
         console.print(Padding(
@@ -1055,12 +1066,13 @@ class EscalationEngine:
 class OnionMonitor:
     
     def __init__(self, state_manager: StateManager, tor_checker: TorChecker, 
-                 notifier: Notifier, event_feed: EventFeed = None):
+                 notifier: Notifier, event_feed: EventFeed = None, config = None):
         self.state = state_manager
         self.tor = tor_checker
         self.notifier = notifier
         self.event_feed = event_feed
         self.silent = False
+        self.config = config
     
     def check_site(self, onion_url: str) -> bool:
         if not self.tor.check():
@@ -1134,7 +1146,7 @@ class OnionMonitor:
                             "[bold cyan]→ Capturing seizure screenshot...[/bold cyan]",
                             (0, 0, 0, 4)
                         ))
-                        screenshot_path = DWIScreenshot.capture(onion_url, use_tor=True)
+                        screenshot_path = DWIScreenshot.capture(onion_url, use_tor=True, enable_js=self.config.enable_js)
                     
                     console.print(Padding(
                         "[bold cyan]→ Sending new onion site notifications...[/bold cyan]",
@@ -1233,7 +1245,7 @@ class OnionMonitor:
                         "[bold cyan]→ Capturing seizure screenshot...[/bold cyan]",
                         (0, 0, 0, 4)
                     ))
-                    screenshot_path = DWIScreenshot.capture(onion_url, use_tor=True)
+                    screenshot_path = DWIScreenshot.capture(onion_url, use_tor=True, enable_js=self.config.enable_js)
                     
                     console.print(Padding(
                         "[bold cyan]→ Sending seizure notifications...[/bold cyan]",
@@ -1521,7 +1533,7 @@ class DNSMonitor:
                         "[bold cyan]→ Capturing seizure screenshot...[/bold cyan]",
                         (0, 0, 0, 4)
                     ))
-                    screenshot_path = DWIScreenshot.capture(domain, use_tor=False, proxy_url=self.proxy_url)
+                    screenshot_path = DWIScreenshot.capture(domain, use_tor=False, proxy_url=self.proxy_url, enable_js=self.config.enable_js)
                     
                     console.print(Padding(
                         "[bold cyan]→ Sending SEIZURE notifications...[/bold cyan]",
@@ -2171,7 +2183,7 @@ class WHOISMonitor:
     
     def __init__(self, state_manager: StateManager, notifier: 'Notifier', 
                  event_feed: EventFeed = None, escalation: 'EscalationEngine' = None,
-                 proxies: dict = None, proxy_url: str = None):
+                 proxies: dict = None, proxy_url: str = None, config = None):
         self.state = state_manager
         self.notifier = notifier
         self.event_feed = event_feed
@@ -2181,6 +2193,7 @@ class WHOISMonitor:
         self.proxies = proxies
         self.proxy_url = proxy_url
         self.scan_count = 0
+        self.config = config
     
     def _check_whois_available(self) -> bool:
         if self._whois_available is not None:
@@ -2444,7 +2457,7 @@ class WHOISMonitor:
                         "[bold cyan]→ Capturing screenshot...[/bold cyan]",
                         (0, 0, 0, 6)
                     ))
-                    screenshot_path = DWIScreenshot.capture(domain, use_tor=False, proxy_url=self.proxy_url)
+                    screenshot_path = DWIScreenshot.capture(domain, use_tor=False, proxy_url=self.proxy_url, enable_js=self.config.enable_js)
                     screenshot_str = str(screenshot_path) if screenshot_path else None
                     
                     alert_records = [f"Indicator: {h}" for h in seizure_hits]
@@ -2576,7 +2589,7 @@ class WHOISMonitor:
                         "[bold cyan]→ Capturing screenshot...[/bold cyan]",
                         (0, 0, 0, 4)
                     ))
-                    screenshot_path = DWIScreenshot.capture(domain, use_tor=False, proxy_url=self.proxy_url)
+                    screenshot_path = DWIScreenshot.capture(domain, use_tor=False, proxy_url=self.proxy_url, enable_js=self.config.enable_js)
                     screenshot_str = str(screenshot_path) if screenshot_path else None
                 
                 record_type = "WHOIS Seizure Alert" if is_seizure_alert else "WHOIS Change"
@@ -2709,7 +2722,7 @@ class IPMonitor:
     
     def __init__(self, state_manager: StateManager, notifier: 'Notifier',
                  event_feed: EventFeed = None, escalation: 'EscalationEngine' = None,
-                 proxy_url: str = None):
+                 proxy_url: str = None, enable_js = False):
         self.state = state_manager
         self.notifier = notifier
         self.event_feed = event_feed
@@ -2717,6 +2730,7 @@ class IPMonitor:
         self.silent = False
         self.proxy_url = proxy_url
         self.scan_count = 0
+        self.enable_js = enable_js
     
     def _resolve_ips(self, domain: str) -> dict:
         """Resolve A and AAAA records for a domain. Returns {'A': [...], 'AAAA': [...]}."""
@@ -3068,7 +3082,8 @@ class DWIWatchdog:
                                       proxy_url=self.config.clearnet_proxy)
         self.onion_monitor = OnionMonitor(
             self.onion_state, self.tor_checker, 
-            self.notifier, self.event_feed
+            self.notifier, self.event_feed,
+            config=self.config
         )
         
         self.seizure_escalation = EscalationEngine(
@@ -3085,12 +3100,14 @@ class DWIWatchdog:
             self.whois_state, self.notifier, self.event_feed,
             escalation=self.seizure_escalation,
             proxies=self.clearnet_proxies,
-            proxy_url=self.config.clearnet_proxy
+            proxy_url=self.config.clearnet_proxy,
+            config=self.config
         )
         self.ip_monitor = IPMonitor(
             self.ip_state, self.notifier, self.event_feed,
             escalation=self.seizure_escalation,
-            proxy_url=self.config.clearnet_proxy
+            proxy_url=self.config.clearnet_proxy,
+            enable_js=self.config.enable_js
         )
         
         self.running = True
