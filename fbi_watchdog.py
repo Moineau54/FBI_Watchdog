@@ -1022,7 +1022,7 @@ class EscalationEngine:
             "[bold cyan]→ Step 2/3: Capturing screenshot...[/bold cyan]",
             (0, 0, 0, 4)
         ))
-        screenshot_path = DWIScreenshot.capture(domain, use_tor=False, proxy_url=self.proxy_url, enable_js=self.config.enable_js)
+        screenshot_path = DWIScreenshot.capture(domain, use_tor=False, proxy_url=self.proxy_url, enable_js=self.enable_js)
         screenshot_str = str(screenshot_path) if screenshot_path else None
         
         console.print(Padding(
