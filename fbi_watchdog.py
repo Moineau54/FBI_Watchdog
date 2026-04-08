@@ -924,11 +924,12 @@ class DWIScreenshot:
 class EscalationEngine:
     
     def __init__(self, dns_state: StateManager, notifier: 'Notifier', 
-                 event_feed: EventFeed = None, proxy_url: str = None):
+                 event_feed: EventFeed = None, proxy_url: str = None, enable_js = None):
         self.dns_state = dns_state
         self.notifier = notifier
         self.event_feed = event_feed
         self.proxy_url = proxy_url
+        self.enable_js = enable_js
     
     def _quick_dns_check(self, domain: str) -> dict:
         evidence = {}
@@ -1140,7 +1141,7 @@ class OnionMonitor:
                 self.state.save()
                 
                 if not self.silent:
-                    screenshot_path = None
+                    screenshot_path = None #"screenshots/"
                     if is_seized:
                         console.print(Padding(
                             "[bold cyan]→ Capturing seizure screenshot...[/bold cyan]",
@@ -3089,7 +3090,7 @@ class DWIWatchdog:
         
         self.seizure_escalation = EscalationEngine(
             self.dns_state, self.notifier, self.event_feed,
-            proxy_url=self.config.clearnet_proxy
+            proxy_url=self.config.clearnet_proxy, enable_js=self.config.enable_js
         )
         
         self.http_monitor = HTTPMonitor(
