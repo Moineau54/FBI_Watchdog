@@ -36,3 +36,8 @@ venv/
 # OS
 .DS_Store
 Thumbs.db
+
+# other
+.stfolder
+.sync*
+.stignore
